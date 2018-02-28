@@ -1,0 +1,8 @@
+{
+  "name": "ion3-file-upload-storage",
+  "app_id": "",
+  "type": "ionic-angular",
+  "integrations": {
+    "cordova": {}
+  }
+}
