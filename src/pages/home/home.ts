@@ -5,19 +5,25 @@ import { FileChooser } from '@ionic-native/file-chooser';
 import { FilePath } from '@ionic-native/file-path';
 import * as firebase from 'firebase';
 import { AngularFireDatabase} from 'angularfire2/database';
+import { AngularFirestore, AngularFirestoreCollection } from 'angularfire2/firestore';
+import { Observable } from 'rxjs/Observable';
 
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html',
-  providers: [File, FileChooser, FilePath, AngularFireDatabase]
+  providers: [File, FileChooser, FilePath, AngularFireDatabase, AngularFirestore]
 })
 export class HomePage {
   myBlobFile: any;
+  myFiles: Observable<any>;
+  private myFilesCollection: AngularFirestoreCollection<any>;
+
   constructor(public navCtrl: NavController, private file: File,
               private fileChooser: FileChooser, private filePath: FilePath,
-              private af: AngularFireDatabase) {
-
+              private af: AngularFireDatabase, db: AngularFirestore) {
+    this.myFilesCollection = db.collection('myFilesCollections');
+    this.myFiles = this.myFilesCollection.valueChanges();
   }
   selectedFile(){
     this.fileChooser.open().then((uri) => {
@@ -29,7 +35,9 @@ export class HomePage {
             this.file.readAsArrayBuffer(finalPath, meta.name).then((file) => {
               let blob = new Blob([file], {type: meta.type});
               this.myBlobFile = blob;
-              this.uploadFileToStorage(meta);
+              this.uploadFileToStorage(meta).then(uploadUrl => {
+                this.onSaveFirestore(uploadUrl, meta.name);
+              });
             });
         });
 
@@ -52,14 +60,37 @@ export class HomePage {
   }
   uploadFileToStorage(fileObject){
     let storageRef =  firebase.storage().ref();
-    let task = storageRef.child('files/'+ fileObject.name).put(this.myBlobFile);
-    task.on('state_changed', (snapshot: any) => {
-      let uploading = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-      console.log("upload is " + uploading + "% done");
-      if(uploading == 100){
-        alert('uploaded OK');
-      }
+    return new Promise((resolve, reject) => {
+      let task = storageRef.child('files/'+ fileObject.name).put(this.myBlobFile);
+        task.on('state_changed', (snapshot: any) => {
+            let uploading = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            console.log("upload is " + uploading + "% done");
+        },(err) => {
+          alert('Upload Err '+ JSON.stringify(err));
+        },() => {
+          alert('uploaded OK');
+          resolve(task.snapshot.downloadURL);
+        });
     });
+
+  }
+  async onSaveFirestore(fileUploadUrls, name){
+    let data = {
+      name: name,
+      fileUploadUrl: fileUploadUrls,
+    }
+    this.myFilesCollection.add(data).then(() => {
+      alert('add file success');
+    }).catch(err => {
+      console.log(JSON.stringify(err))
+    });
+  }
+  downloadFile(file){
+     let storageRef =  firebase.storage().ref();
+     let task = storageRef.child('files/'+ file.name);
+     task.getDownloadURL().then(url => {
+       window.location.href = url;
+     })
   }
 
 }

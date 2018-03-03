@@ -1,11 +1,46 @@
 <ion-header>
     <ion-navbar color="primary">
         <ion-title>
-            Ionic fileUpload
+            <ion-icon name="cloud-upload"></ion-icon> Ionic fileUpload
         </ion-title>
     </ion-navbar>
 </ion-header>
-
 <ion-content padding>
-    <button ion-button block (click)="selectedFile()">selectedFle</button>
+    <ion-list>
+        <ion-item *ngFor="let file of myFiles | async">
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.png') >= 0">
+                <img src="http://www.iconhot.com/icon/png/file-icons-vs-2/256/png-36.png">
+            </ion-avatar>
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.ogg') >= 0">
+                <img src="http://icons.iconarchive.com/icons/pelfusion/flat-file-type/512/ogg-icon.png">
+            </ion-avatar>
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.apk') >= 0">
+                <img src="http://mbztech.com/wp-content/uploads/2018/01/apk.png">
+            </ion-avatar>
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.pdf') >= 0">
+                <img src="http://agriculturalseminars.com/subidas/2017/02/icon-pdf.png">
+            </ion-avatar>
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.sql') >= 0">
+                <img src="http://www.iconhot.com/icon/png/coded/512/sql-1.png">
+            </ion-avatar>
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.docx') >= 0">
+                <img src="http://stufile.ir/content/productpic/9782Ni8yNi8yMDE1IDEyOjAwOjAwIEFNNDE2.png">
+            </ion-avatar>
+            <ion-avatar item-start *ngIf="file?.name.indexOf('.txt') >= 0">
+                <img src="http://icons.iconarchive.com/icons/pelfusion/flat-file-type/512/txt-icon.png">
+            </ion-avatar>
+
+
+
+
+            <h2>{{ file?.name }}</h2>
+            <ion-badge (click)="downloadFile(file)">
+                <ion-icon name="cloud-download"></ion-icon> download
+            </ion-badge>
+        </ion-item>
+    </ion-list>
+    <button ion-button round (click)="selectedFile()">
+    <ion-icon name="cloud-upload"></ion-icon> selectedFle
+  </button>
+
 </ion-content>
