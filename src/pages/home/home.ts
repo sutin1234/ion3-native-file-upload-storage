@@ -23,7 +23,14 @@ export class HomePage {
               private fileChooser: FileChooser, private filePath: FilePath,
               private af: AngularFireDatabase, db: AngularFirestore) {
     this.myFilesCollection = db.collection('myFilesCollections');
-    this.myFiles = this.myFilesCollection.valueChanges();
+    this.myFiles = this.myFilesCollection.snapshotChanges().map(actions => {
+      return actions.map(a => {
+        //console.log(JSON.stringify(a))
+        const data = a.payload.doc.data();
+        const id = a.payload.doc.id;
+        return { id, ...data };
+      });
+    });
   }
   selectedFile(){
     this.fileChooser.open().then((uri) => {
@@ -78,6 +85,7 @@ export class HomePage {
     let data = {
       name: name,
       fileUploadUrl: fileUploadUrls,
+      downloadStatus:'show'
     }
     this.myFilesCollection.add(data).then(() => {
       alert('add file success');
@@ -85,12 +93,25 @@ export class HomePage {
       console.log(JSON.stringify(err))
     });
   }
-  downloadFile(file){
+  updateCollection(fileData, url) {
+    console.log(JSON.stringify(fileData));
+    this.myFilesCollection.doc(fileData.id).update({ downloadStatus: 'hide'}).then(data => {
+      alert('update success');
+      window.location.href = url;
+    }).catch(err => {
+      alert('Update Not Success!');
+    });
+  }
+  downloadFile(fileData){
      let storageRef =  firebase.storage().ref();
-     let task = storageRef.child('files/'+ file.name);
+     let task = storageRef.child('files/'+ fileData.name);
      task.getDownloadURL().then(url => {
-       window.location.href = url;
-     })
+       //file.downloadStatus = 'hide';
+       this.updateCollection(fileData, url);
+       //window.location.href = url;
+     }).catch(err => {
+       console.log('ERR DownloadFiles '+ JSON.stringify(err))
+     });
   }
 
 }

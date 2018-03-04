@@ -33,10 +33,16 @@
 
 
 
-            <h2>{{ file?.name }}</h2>
-            <ion-badge (click)="downloadFile(file)">
+            <p>{{ file?.name }}</p>
+            <ion-badge item-end (click)="downloadFile(file)" *ngIf="file?.downloadStatus == 'show'">
+
                 <ion-icon name="cloud-download"></ion-icon> download
             </ion-badge>
+            <ion-badge item-end *ngIf="file?.downloadStatus == 'hide'">
+                <ion-icon name="checkmark"></ion-icon> downloaded
+            </ion-badge>
+
+
         </ion-item>
     </ion-list>
     <button ion-button round (click)="selectedFile()">
